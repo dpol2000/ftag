@@ -317,6 +317,11 @@
                         objectId = $(options.tagValue).val(),
                         area = thisArea.children('.areaClass.new');
 
+                    // if user input is empty, don't save anything
+                    if (title === '') {
+                        return;
+                    }
+                    
                     // hide tags choice and input window
                     $(options.tagSelectWindow).hide();
 
