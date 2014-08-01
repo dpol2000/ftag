@@ -99,12 +99,16 @@
             
                 thisArea = thisImage.parent();
                 var tags = [];
+
+                position = thisImage.position();
+            
+                console.log('get: position.top = ' + position.top);
             
                 // gather all data from tags
                 thisArea.children('.areaClass').each(function () {
 
                     var area = $(this);
-
+                    
                     tags.push({'title': area.attr('title'),
                         'objectid': area.attr('objectid'),
                         'id': parseInt(area.attr('id'), 10),
@@ -166,7 +170,6 @@
                 // if it is, change its options
                 if (data) {
                     data.options = options;
-                    console.log('ok');
                 } else { // otherwise save options data to the jquery object
                     ftagObject = new ftag(options, thisImage);
                     thisImage.data('_ftag', ftagObject);
@@ -179,10 +182,14 @@
                     thisImage.parent().find('.ftagShadow').remove();
                 } else {
                     // wrap the image
-                    thisImage.wrap('<div id="' + tagsAreaId + '-' + thisImage.attr('id') + '" style="display: inline-block; padding:0; margin:0;"></div>');
+                    thisImage.wrap('<div id="' + tagsAreaId + '-' + thisImage.attr('id') + 
+                    '" style="display: inline-block; padding:0; margin:0; position: relative;"></div>');
                 }
 
                 thisArea = thisImage.parent();
+                thisArea.css({
+                    width: thisImage.css('width'),
+                });
 
                 // remove all existing tags, if they are present
                 $(options.tagsHolder).empty();
@@ -214,7 +221,19 @@
                     // appy styles to the area
                     applyParameters('div.areaClass[id="' + options.tags[i].id + '"]', options.areaShowStyle, defaultAreaShowStyle);
 
-                    position = $(this).position();
+                    position = thisImage.position();
+                    offset = thisImage.offset();
+                    var marg = parseInt($(this).parent().prev().css('margin-right'));
+                    var prev = parseInt($(this).parent().prev().css('width'));
+                    
+//                    var marg2 = parseInt($(this).parent().next().css('margin-left'));
+
+                    if (!marg) {
+                        marg = 0;
+                    }
+                    if (!prev) {
+                        prev = 0;                        
+                    }
                     
                     // apply sizes to the area and turn relative coordinates into absolute
                     thisArea.children('div.areaClass[id="' + options.tags[i].id + '"]').css({
@@ -274,6 +293,7 @@
                         area = thisArea.children('.areaClass[id="' + $(this).attr('id') + '"]'),
                         position = thisImage.position(),
                         border = 0;
+
                     
                     if (options.areaShowStyle) { // take into consideration border width of the tagged area
                         border = Math.ceil(parseFloat(area.css('border-width'), 10));
@@ -311,7 +331,8 @@
                     var imageId = $(this).attr('imageId'),
                         data = $('#'+imageId).data('_ftag'),
                         options = data.options,
-                        position =  $('#'+imageId).position();
+                        position =  $('#'+imageId).position(),
+//                        offset = $('#'+imageId).offset(),
                         thisArea = $('#'+imageId).parent(),
                         title = $(options.tagTextInput).val(),
                         objectId = $(options.tagValue).val(),
@@ -358,7 +379,7 @@
                         'top': Math.ceil(parseInt(area.css('top'), 10) - position.top),
                         'width': parseInt(area.css('width'), 10),
                         'height': parseInt(area.css('height'), 10)
-                    });                 
+                    });
                     
                     // create and append the new tag on the window                    
                     
@@ -393,7 +414,7 @@
                         thisArea.prepend('<div class="areaClass" id="' + options.tags[i].id + '" objectid="' + 
                         options.tags[i].objectid +  '" title="' + options.tags[i].title + '"></div>');
 
-                        // appy styles to the area
+                        // apply styles to the area
                         applyParameters('div.areaClass[id="' + options.tags[i].id + '"]', 
                             options.areaShowStyle, 
                             defaultAreaShowStyle);
@@ -406,6 +427,7 @@
                             left: parseInt(options.tags[i].left, 10) + position.left + 'px'
                         });
                     }
+                    
 
                 });
                 
@@ -442,7 +464,6 @@
                     
                     var coeffX,
                         coeffy;
-                    console.log('click');
                     
                     if (!stop) { //if user has not clicked twice yet
 
