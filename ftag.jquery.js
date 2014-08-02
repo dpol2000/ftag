@@ -74,7 +74,6 @@
     
         if (typeof options === 'string') { // the parameter is a command
         
-           
             switch (options) {
 
             case 'stop': // stop all activity, i.e. unbind all events
@@ -96,35 +95,13 @@
                 return this;
 
             case 'get':  // get all tags data and return an array
-            
-                thisArea = thisImage.parent();
-                var tags = [];
-
-                position = thisImage.position();
-            
-                console.log('get: position.top = ' + position.top);
-            
-                // gather all data from tags
-                thisArea.children('.areaClass').each(function () {
-
-                    var area = $(this);
-                    
-                    tags.push({'title': area.attr('title'),
-                        'objectid': area.attr('objectid'),
-                        'id': parseInt(area.attr('id'), 10),
-                        'left': Math.ceil(parseInt(area.css('left'), 10) - position.left),
-                        'top': Math.ceil(parseInt(area.css('top'), 10) - position.top),
-                        'width': parseInt(area.css('width'), 10),
-                        'height': parseInt(area.css('height'), 10)
-                    });
-                });
-
+                var data = thisImage.data('_ftag');
+                var tags = data.options.tags;
                 return tags;
             } // switch
             
         } else if (typeof options === 'object') { // the parameter is an options object
 
-            
             // check all necessary parameters, if any is absent then leave a message on the console and return null  
 
                 if (!options.tagSelectWindow) {
@@ -201,6 +178,7 @@
                 // events of tags
                 $(options.tagsHolder).off('mouseenter', '.tagClass');
                 $(options.tagsHolder).off('mouseleave', '.tagClass');
+                $(options.tagsHolder).off('click', '.tagClass');
                 // events of tag choice & input window
                 $(options.tagSelectWindow + ' ' + options.tagSelectWindowSave).unbind('click');
                 $(options.tagSelectWindow + ' ' + options.tagSelectWindowClose).unbind('click');
@@ -222,28 +200,16 @@
                     applyParameters('div.areaClass[id="' + options.tags[i].id + '"]', options.areaShowStyle, defaultAreaShowStyle);
 
                     position = thisImage.position();
-                    offset = thisImage.offset();
-                    var marg = parseInt($(this).parent().prev().css('margin-right'));
-                    var prev = parseInt($(this).parent().prev().css('width'));
-                    
-//                    var marg2 = parseInt($(this).parent().next().css('margin-left'));
-
-                    if (!marg) {
-                        marg = 0;
-                    }
-                    if (!prev) {
-                        prev = 0;                        
-                    }
                     
                     // apply sizes to the area and turn relative coordinates into absolute
                     thisArea.children('div.areaClass[id="' + options.tags[i].id + '"]').css({
                         width: parseInt(options.tags[i].width, 10) + 'px',
                         height: parseInt(options.tags[i].height, 10) + 'px',
-                        top: parseInt(options.tags[i].top, 10) + position.top + 'px',
+                        top: parseInt(options.tags[i].top, 10) + position.top - $(window).scrollTop() + 'px',
                         left: parseInt(options.tags[i].left, 10) + position.left + 'px'
                     });
                 }
-
+                
                 // add events to handle existing and future tags
 
                 // remove tag event handler; user clicks on the [x] button
@@ -252,7 +218,7 @@
                     var id = $(this).parent().attr('id'),
                         $tagsHolder = $(this).parent().parent(),
                         imageId = $tagsHolder.attr('imageId'),
-                        thisImage = $('#'+imageId);
+                        thisImage = $('#'+imageId),
                         data = thisImage.data('_ftag'),
                         options = data.options;
                     
@@ -362,6 +328,7 @@
                             newTagId = options.tags[i].id;
                         }
                     }
+                    
                     newTagId++;
                     
                     // add tag information to the area
@@ -371,12 +338,14 @@
                         id: newTagId
                     });
                     
+                    var top = Math.ceil(parseInt(area.css('top'), 10) - position.top);
+                    
                     // save the new tag info into the object with old coordinates
                     options.tags.push({'title': area.attr('title'),
                         'objectid': area.attr('objectid'),
                         'id': area.attr('id'),
                         'left': Math.ceil(parseInt(area.css('left'), 10) - position.left),
-                        'top': Math.ceil(parseInt(area.css('top'), 10) - position.top),
+                        'top': top,
                         'width': parseInt(area.css('width'), 10),
                         'height': parseInt(area.css('height'), 10)
                     });
@@ -384,7 +353,7 @@
                     // create and append the new tag on the window                    
                     
                     var tag = createTag(newTagId, objectId, title, options);
-                    
+                                        
                     $(options.tagsHolder).append(tag);
                     
                     applyParameters(options.tagsHolder + ' .tagClass[id="' + newTagId + '"]', options.tagsStyle, defaultTagsStyle);
@@ -400,35 +369,9 @@
                     if (options.ontagSelectWindowClose) {
                         options.ontagSelectWindowClose();
                     }
-                
-                    // redraw all areas with new coordinates
-                    // first remove them all
-                    thisArea.children('div.areaClass').remove();
                     
-                    // then draw again all of them with new position
-                    position =  $('#'+imageId).position();
-
-                    for (i = 0; i !== options.tags.length; i++) {
-
-                        // append corresponding area on the image
-                        thisArea.prepend('<div class="areaClass" id="' + options.tags[i].id + '" objectid="' + 
-                        options.tags[i].objectid +  '" title="' + options.tags[i].title + '"></div>');
-
-                        // apply styles to the area
-                        applyParameters('div.areaClass[id="' + options.tags[i].id + '"]', 
-                            options.areaShowStyle, 
-                            defaultAreaShowStyle);
-
-                        // apply sizes to the area
-                        thisArea.children('div.areaClass[id="' + options.tags[i].id + '"]').css({
-                            width: parseInt(options.tags[i].width, 10) + 'px',
-                            height: parseInt(options.tags[i].height, 10) + 'px',
-                            top: parseInt(options.tags[i].top, 10) + position.top + 'px',
-                            left: parseInt(options.tags[i].left, 10) + position.left + 'px'
-                        });
-                    }
-                    
-
+                    // get rid of the new class
+                    thisArea.children('.areaClass.new').removeClass('new');
                 });
                 
                 // user clicks Close button; tag choice window is closed
@@ -476,14 +419,14 @@
                             imageWidth, 
                             imageHeight;
                         
-                        if (getPositionStyle(thisArea.parent()).css('position') === 'static') {
+/*                        if (getPositionStyle(thisArea.parent()).css('position') === 'static') {
                             staticParent = true;
                             coeffX = Math.ceil(offset.left);
                             coeffY = Math.ceil(offset.top);
-                        } else {
+                        } else {*/
                             coeffX = Math.ceil(position.left);
                             coeffY = Math.ceil(position.top);
-                        }
+//                        }
                         
                         if (clicked) { // if user has already clicked once
 
@@ -518,10 +461,10 @@
                             my = Math.ceil(e.pageY);
 
                             // correct coordinates if needed
-                            if (!staticParent) {
+//                            if (!staticParent) {
                                 mx = mx - offset.left + coeffX;
                                 my = my - offset.top + coeffY;
-                            }
+//                            }
                             
                             // get tagged area and set its style
                             thisArea.children('.areaClass.new').css({
@@ -543,18 +486,17 @@
                                         position = thisArea.children('img').first().position();
 
                                     // set mouse coordinates and coefficients depending on styles
-                                    if (getPositionStyle(thisArea.parent()).css('position') === 'static') {
+/*                                    if (getPositionStyle(thisArea.parent()).css('position') === 'static') {
                                         coeffX = Math.ceil(offset.left);
-                                        coeffY = Math.ceil(offset.top);
-                                        cx = Math.ceil(e.pageX);
-                                        cy = Math.ceil(e.pageY);
-                                        
-                                    } else {
+                                        coeffY = Math.ceil(offset.top); //Math.ceil(offset.top);
+                                        cx = Math.ceil(e.pageX - offset.left); // + position.left);
+                                        cy = Math.ceil(e.pageY - offset.top); //+ position.top);
+                                    } else {*/
                                         coeffX = Math.ceil(position.left);
                                         coeffY = Math.ceil(position.top);
                                         cx = Math.ceil(e.pageX - offset.left + position.left);
                                         cy = Math.ceil(e.pageY - offset.top + position.top);
-                                    }
+                                    //}
                                     
                                     // if coordinates are inside the image
                                     if ((cx > coeffX) && (cx < imageWidth + coeffX) && (cy > coeffY) && (cy < imageHeight + coeffY)) {
