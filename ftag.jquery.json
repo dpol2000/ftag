@@ -1,0 +1,26 @@
+{
+    "name": "ftag",
+    "title": "jQuery photo tag",
+    "description": "jQuery plugin for tagging photos",
+    "keywords": [
+        "photo",
+        "tag",
+        "tagging"
+    ],
+    "version": "1.0.0",
+    "author": {
+        "name": "Dmitry Polinichenko",
+        "email": "dpol2000@gmail.com"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/dpol2000/ftag/blob/master/license.txt"
+        }
+    ],
+    "homepage": "https://github.com/dpol2000/ftag",
+    "docs": "https://github.com/dpol2000/ftag/blob/master/readme.md",
+    "dependencies": {
+        "jquery": ">=1.5"
+    }
+}
